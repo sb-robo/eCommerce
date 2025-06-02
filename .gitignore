@@ -1,1 +1,3 @@
 .venv
+.superuser.txt
+__pycache__
