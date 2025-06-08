@@ -24,27 +24,31 @@ class CustomUserAdmin(auth.admin.UserAdmin):
                     "is_vendor",
                     "groups",
                     "user_permissions",
-                )
+                ),
             },
         ),
     )
 
     # When creating a new user via the admin
-    add_fieldsets = (
-        None,
-        {
-            "classes": ("wide",),
-            "fields": (
-                "email",
-                "phone_number",
-                "password1",
-                "password2",
-                "is_vendor",
-                "is_staff",
-                "is_active",
-            ),
-        },
-    )
+    add_fieldsets = [
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "email",
+                    "phone_number",
+                    "first_name",
+                    "last_name",
+                    "password1",
+                    "password2",
+                    "is_vendor",
+                    "is_staff",
+                    "is_active",
+                ),
+            },
+        ),
+    ]
 
     ordering = [
         "email",

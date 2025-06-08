@@ -21,7 +21,7 @@ class CustomUser(AbstractUser):
     is_vendor = models.BooleanField(null=False, default=False)
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ["first_name", "last_name", "phone_number"]
 
     objects = CustomUserManager()
 
