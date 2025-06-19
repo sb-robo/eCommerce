@@ -1,0 +1,67 @@
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from .models import Product, ProductCategory
+
+User = get_user_model()
+
+
+class ProductsViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = (
+            "title",
+            "description",
+            "slug",
+            "price",
+            "discount_price",
+            "category",
+            "image",
+            "vendor",
+        )
+
+
+class CreateProductCategoryViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductCategory
+        fields = (
+            "title",
+            "description",
+            "slug",
+        )
+        read_only_fields = ("slug",)
+
+    def create(self, validated_data):
+        product_category = ProductCategory.objects.create(**validated_data)
+        return product_category
+
+
+class CreateProductViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = (
+            "title",
+            "description",
+            "slug",
+            "price",
+            "discount_price",
+            "category",
+            "image",
+            "vendor",
+        )
+        read_only_fields = ("slug",)
+
+    def validate(self, attrs):
+        price = attrs.get("price")
+        discount_price = attrs.get("discount_price")
+
+        if price < 0:
+            serializers.ValidationError({"message": "Please enter a Valid price!"})
+
+        if discount_price < 0:
+            serializers.ValidationError({"message": "Please enter a Valid Discount price!"})
+
+        return attrs
+
+    def create(self, validated_data):
+        product = Product.objects.create(**validated_data)
+        return product
