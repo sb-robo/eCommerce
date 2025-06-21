@@ -5,7 +5,7 @@ from .models import Product, ProductCategory
 User = get_user_model()
 
 
-class ProductsViewSerializer(serializers.ModelSerializer):
+class ProductViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = (
@@ -20,7 +20,7 @@ class ProductsViewSerializer(serializers.ModelSerializer):
         )
 
 
-class CreateProductCategoryViewSerializer(serializers.ModelSerializer):
+class AddProductCategoryViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductCategory
         fields = (
@@ -30,12 +30,21 @@ class CreateProductCategoryViewSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("slug",)
 
+    def validate(self, attrs):
+        user = self.context.get("request").user
+        if not user.is_staff:
+            return serializers.ValidationError(
+                {"Message": "Only staffs can add new product category"}
+            )
+
+        return attrs
+
     def create(self, validated_data):
         product_category = ProductCategory.objects.create(**validated_data)
         return product_category
 
 
-class CreateProductViewSerializer(serializers.ModelSerializer):
+class AddProductViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = (
@@ -51,6 +60,10 @@ class CreateProductViewSerializer(serializers.ModelSerializer):
         read_only_fields = ("slug",)
 
     def validate(self, attrs):
+        user = self.context.get("request").user
+        if not user.is_vendor:
+            return serializers.ValidationError({"Message": "Only vendros can add new product"})
+
         price = attrs.get("price")
         discount_price = attrs.get("discount_price")
 

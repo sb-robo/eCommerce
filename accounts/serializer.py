@@ -65,6 +65,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "is_vendor",
+            "is_staff",
         )
 
 
