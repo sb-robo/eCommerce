@@ -11,7 +11,7 @@ User = get_user_model()
 
 
 class ProductCategory(models.Model):
-    title = models.CharField(max_length=50, null=False)
+    title = models.CharField(max_length=50, null=False, unique=True)
     description = models.CharField(max_length=200, null=False)
     slug = models.SlugField(max_length=100, null=False, blank=True, unique=True)
 
@@ -26,7 +26,7 @@ class ProductCategory(models.Model):
 
 
 class Product(models.Model):
-    title = models.CharField(max_length=150, null=False)
+    title = models.CharField(max_length=150, null=False, unique=True)
     description = models.TextField(max_length=5000, null=False)
     slug = models.SlugField(max_length=300, null=False, blank=True, unique=True)
     price = models.DecimalField(max_digits=12, decimal_places=2, null=False)
@@ -49,8 +49,9 @@ class Product(models.Model):
         return reverse("", kwargs={"slug": self.slug})
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
+        new_slug = slugify(self.title)
+        if self.slug != new_slug:
+            self.slug = new_slug
 
         return super().save(*args, **kwargs)
 

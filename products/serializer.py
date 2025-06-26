@@ -33,7 +33,7 @@ class AddProductCategoryViewSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         user = self.context.get("request").user
         if not user.is_staff:
-            return serializers.ValidationError(
+            raise serializers.ValidationError(
                 {"Message": "Only staffs can add new product category"}
             )
 
@@ -42,6 +42,33 @@ class AddProductCategoryViewSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         product_category = ProductCategory.objects.create(**validated_data)
         return product_category
+
+
+class UpdateProductCategoryViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model: ProductCategory
+        fields = (
+            "title",
+            "description",
+            "slug",
+        )
+        read_only_fields = ("slug",)
+
+    def validate(self, attrs):
+        user = self.context.get("request").user
+        if not user.is_staff:
+            raise serializers.ValidationError(
+                {"Message": "Only staffs can update product category"}
+            )
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get("title", instance.title)
+        instance.description = validated_data.get("description", instance.description)
+
+        instance.save()
+        return instance
 
 
 class AddProductViewSerializer(serializers.ModelSerializer):
@@ -62,19 +89,63 @@ class AddProductViewSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         user = self.context.get("request").user
         if not user.is_vendor:
-            return serializers.ValidationError({"Message": "Only vendros can add new product"})
+            raise serializers.ValidationError({"Message": "Only vendros can add new product"})
 
         price = attrs.get("price")
         discount_price = attrs.get("discount_price")
 
         if price < 0:
-            serializers.ValidationError({"message": "Please enter a Valid price!"})
+            raise serializers.ValidationError({"message": "Please enter a Valid price!"})
 
         if discount_price < 0:
-            serializers.ValidationError({"message": "Please enter a Valid Discount price!"})
+            raise serializers.ValidationError({"message": "Please enter a Valid Discount price!"})
 
         return attrs
 
     def create(self, validated_data):
         product = Product.objects.create(**validated_data)
         return product
+
+
+class UpdateProductViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = (
+            "title",
+            "description",
+            "slug",
+            "price",
+            "discount_price",
+            "category",
+            "image",
+            "vendor",
+        )
+        read_only_fields = ("slug", "vendor")
+
+    def validate(self, attrs):
+        user = self.context.get("request").user
+        if user.id != self.instance.vendor:
+            raise serializers.ValidationError(
+                {"Message": "You don't have permission to update this product"}
+            )
+
+        price = attrs.get("price")
+        discount_price = attrs.get("discount_price")
+
+        if price < 0:
+            raise serializers.ValidationError({"message": "Please enter a Valid price!"})
+
+        if discount_price < 0:
+            raise serializers.ValidationError({"message": "Please enter a Valid Discount price!"})
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        fields = ("title", "description", "price", "discount_price", "category", "image")
+
+        for field in fields:
+            if field in validated_data:
+                setattr(instance, field, validated_data[field])
+
+        instance.save()
+        return instance
