@@ -19,8 +19,9 @@ class ProductCategory(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
+        new_slug = slugify(self.title)
+        if self.slug != new_slug:
+            self.slug = new_slug
 
         return super().save(*args, **kwargs)
 
@@ -31,7 +32,7 @@ class Product(models.Model):
     slug = models.SlugField(max_length=300, null=False, blank=True, unique=True)
     price = models.DecimalField(max_digits=12, decimal_places=2, null=False)
     discount_price = models.DecimalField(max_digits=5, decimal_places=2, null=False, default=0.00)
-    category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE)
+    category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE, related_name="products")
     image = models.URLField(null=False, default=utils.get_product_defult_image_url)
     vendor = models.ForeignKey(
         User,
@@ -46,7 +47,7 @@ class Product(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return reverse("", kwargs={"slug": self.slug})
+        return reverse("product-detail", kwargs={"slug": self.slug})
 
     def save(self, *args, **kwargs):
         new_slug = slugify(self.title)

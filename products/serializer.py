@@ -4,30 +4,33 @@ from .models import Product, ProductCategory
 
 User = get_user_model()
 
+PRODUCT_CATEGORY_FIELDS = (
+    "title",
+    "description",
+    "slug",
+)
+PRODUCT_FIELDS = (
+    "title",
+    "description",
+    "slug",
+    "price",
+    "discount_price",
+    "category",
+    "image",
+    "vendor",
+)
+
 
 class ProductViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = (
-            "title",
-            "description",
-            "slug",
-            "price",
-            "discount_price",
-            "category",
-            "image",
-            "vendor",
-        )
+        fields = PRODUCT_FIELDS
 
 
 class AddProductCategoryViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductCategory
-        fields = (
-            "title",
-            "description",
-            "slug",
-        )
+        fields = PRODUCT_CATEGORY_FIELDS
         read_only_fields = ("slug",)
 
     def validate(self, attrs):
@@ -46,12 +49,8 @@ class AddProductCategoryViewSerializer(serializers.ModelSerializer):
 
 class UpdateProductCategoryViewSerializer(serializers.ModelSerializer):
     class Meta:
-        model: ProductCategory
-        fields = (
-            "title",
-            "description",
-            "slug",
-        )
+        model = ProductCategory
+        fields = PRODUCT_CATEGORY_FIELDS
         read_only_fields = ("slug",)
 
     def validate(self, attrs):
@@ -74,30 +73,19 @@ class UpdateProductCategoryViewSerializer(serializers.ModelSerializer):
 class AddProductViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = (
-            "title",
-            "description",
-            "slug",
-            "price",
-            "discount_price",
-            "category",
-            "image",
-            "vendor",
-        )
+        fields = PRODUCT_FIELDS
         read_only_fields = ("slug",)
 
     def validate(self, attrs):
         user = self.context.get("request").user
         if not user.is_vendor:
-            raise serializers.ValidationError({"Message": "Only vendros can add new product"})
+            raise serializers.ValidationError({"Message": "Only vendors can add new product"})
 
         price = attrs.get("price")
         discount_price = attrs.get("discount_price")
-
-        if price < 0:
+        if price is None and price < 0:
             raise serializers.ValidationError({"message": "Please enter a Valid price!"})
-
-        if discount_price < 0:
+        if discount_price is None and discount_price < 0:
             raise serializers.ValidationError({"message": "Please enter a Valid Discount price!"})
 
         return attrs
@@ -110,32 +98,21 @@ class AddProductViewSerializer(serializers.ModelSerializer):
 class UpdateProductViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = (
-            "title",
-            "description",
-            "slug",
-            "price",
-            "discount_price",
-            "category",
-            "image",
-            "vendor",
-        )
+        fields = PRODUCT_FIELDS
         read_only_fields = ("slug", "vendor")
 
     def validate(self, attrs):
         user = self.context.get("request").user
-        if user.id != self.instance.vendor:
+        if user != self.instance.vendor:
             raise serializers.ValidationError(
                 {"Message": "You don't have permission to update this product"}
             )
 
         price = attrs.get("price")
         discount_price = attrs.get("discount_price")
-
-        if price < 0:
+        if price is not None and price < 0:
             raise serializers.ValidationError({"message": "Please enter a Valid price!"})
-
-        if discount_price < 0:
+        if discount_price is not None and discount_price < 0:
             raise serializers.ValidationError({"message": "Please enter a Valid Discount price!"})
 
         return attrs
